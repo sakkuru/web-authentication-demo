@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Web Authentication API Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/united/bootstrap.min.css" />
+    <style>
+        button,
+        li {
+            margin: 10px 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <button id="make">Make Credential</button>
+        <button id="sign">Sign In</button>
+        <ul>
+            <li>Credential ID:
+                <div id="credID"></div>
+            </li>
+            <li>Public Key:
+                <div id="publicKey"></div>
+            </li>
+            <li>Base64 Encoded Signature:
+                <div id="signature"></div>
+            </li>
+            <li>Base64 Encoded AuthnrData:
+                <div id="authnrdata"></div>
+            </li>
+            <li>Base64 Encoded ClientData:
+                <div id="clientdata"></div>
+            </li>
+        </ul>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+    <script>
+        $("#make").click(() => {
+            const accountInfo = {
+                rpDisplayName: 'Contoso', // Name of relying party
+                userDisplayName: 'Saki Homma' // Name of user account
+            };
+            const cryptoParameters = [{
+                type: 'FIDO_2_0',
+                algorithm: 'RSASSA-PKCS1-v1_5'
+            }];
+
+            msCredentials.makeCredential(accountInfo, cryptoParameters)
+                .then(result => {
+                    console.log(result);
+                    $('#credID').text(result.id);
+                    $('#publicKey').text(result.publicKey);
+                }).catch(err => {
+                    alert('err: ' + err.message);
+                });
+        });
+
+        $("#sign").click(() => {
+            const credID = $('#credID').text();
+            const filters = {
+                accept: [{
+                    type: 'FIDO_2_0',
+                    id: credID
+                }]
+            };
+
+            msCredentials.getAssertion('challenge value', filters)
+                .then(result => {
+                    console.log(result);
+                    $('#signature').text(result.signature.signature);
+                    $('#authnrdata').text(result.signature.authnrData);
+                    $('#clientdata').text(result.signature.clientData);
+                }).catch(err => {
+                    alert('err: ' + err.message);
+                });
+        });
+    </script>
+</body>
+
+</html>
